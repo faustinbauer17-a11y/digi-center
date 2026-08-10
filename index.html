@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>digi center</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#fdf6f8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="digi center">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style>
+  :root{
+    --bg:#fdf6f8;
+    --bg-2:#ffffff;
+    --panel:#ffffff;
+    --panel-soft:#fff0f4;
+    --border:#f4dbe3;
+    --border-soft:#f8e8ec;
+    --text:#3a2e35;
+    --text-dim:#8a7580;
+    --text-faint:#c9a9b6;
+    --accent:#eb96b0;
+    --accent-soft:#ffe1ea;
+    --accent-deep:#d9668f;
+    --warn:#e8a33d;
+    --danger:#e2665f;
+    --good:#6fbf8b;
+    --warn-bg:#fdefd7; --warn-text:#a1650f;
+    --danger-bg:#fbe4e2; --danger-text:#a13d38;
+    --good-bg:#e3f5e9; --good-text:#2f7a4d;
+    --radius:16px;
+    --radius-sm:10px;
+    --font:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    font-size:13.5px;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    transition:background-color .25s ease, color .25s ease;
+  }
+  body, .panel, .stat, input, select, textarea, .btn, .row, .badge, #sidebar, #topbar, .navbtn{
+    transition:background-color .2s ease, color .2s ease, border-color .2s ease;
+  }
+
+  body.dark{
+    --bg:#241820; --bg-2:#2e1e28; --panel:#2e1e28; --panel-soft:#3a2530;
+    --border:#4a2f3a; --border-soft:#3f2731;
+    --text:#f5e6ec; --text-dim:#c9a4b3; --text-faint:#8a6272;
+    --accent:#f2a8c1; --accent-soft:#4a2f3a; --accent-deep:#ff9dbf;
+    --warn-bg:#4a3a1f; --warn-text:#f0c479;
+    --danger-bg:#4a2320; --danger-text:#f2938c;
+    --good-bg:#1f4a30; --good-text:#8fe0ab;
+  }
+
+  .toggle{width:38px; height:20px; border:1px solid var(--border); border-radius:20px; position:relative; cursor:pointer; flex-shrink:0; background:var(--panel-soft);}
+  .toggle i{position:absolute; top:1px; left:1px; width:16px; height:16px; border-radius:50%; background:var(--text-faint); transition:.15s;}
+  .toggle.on{border-color:var(--accent);}
+  .toggle.on i{transform:translateX(18px); background:var(--accent-deep);}
+  ::selection{background:var(--accent-soft); color:var(--accent-deep);}
+  button, input, select, textarea{font-family:var(--font); font-size:13.5px; color:var(--text); background:none; border:none; outline:none;}
+  input, select, textarea{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    padding:9px 12px;
+    border-radius:var(--radius-sm);
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--accent);}
+  button{cursor:pointer;}
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+
+  /* boot */
+  #boot{
+    position:fixed; inset:0; background:linear-gradient(160deg,#fff0f4,#ffe1ea);
+    z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    transition:opacity .4s ease;
+  }
+  #boot .word{font-size:22px; font-weight:700; color:var(--accent-deep); letter-spacing:.5px;}
+  #boot .dot{width:10px; height:10px; border-radius:50%; background:var(--accent-deep); animation:pulse 1s ease-in-out infinite;}
+  #boot .line{font-size:12px; color:#c47b93;}
+  @keyframes pulse{0%,100%{opacity:.35; transform:scale(.85);} 50%{opacity:1; transform:scale(1.1);}}
+
+  #app{display:flex; height:100vh; opacity:0; transition:opacity .35s ease;}
+  #app.ready{opacity:1;}
+
+  #sidebar{
+    width:212px; flex-shrink:0; background:var(--bg-2);
+    border-right:1px solid var(--border-soft);
+    display:flex; flex-direction:column; padding:20px 14px;
+  }
+  #sidebar .brand{display:flex; align-items:center; gap:9px; padding:2px 8px 20px;}
+  #sidebar .brand .mark{width:26px; height:26px; border-radius:8px; background:linear-gradient(160deg,#ffd6e3,#e98aac); flex-shrink:0;}
+  #sidebar .brand .name{font-weight:700; font-size:15px; color:var(--text);}
+  nav{display:flex; flex-direction:column; gap:2px; flex:1;}
+  .navbtn{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px; text-align:left; width:100%;
+    color:var(--text-dim); font-size:13px; border-radius:var(--radius-sm);
+  }
+  .navbtn .ic{font-size:15px; width:18px; text-align:center;}
+  .navbtn:hover{background:var(--panel-soft); color:var(--text);}
+  .navbtn.active{background:var(--accent-soft); color:var(--accent-deep); font-weight:600;}
+  #sidebar .foot{padding:10px 10px 0; font-size:10.5px; color:var(--text-faint);}
+  #clock{font-variant-numeric:tabular-nums; color:var(--text-dim);}
+
+  #main{flex:1; display:flex; flex-direction:column; overflow:hidden;}
+  #topbar{
+    height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; background:var(--bg);
+  }
+  #topbar .path{color:var(--text-faint); font-size:11.5px; letter-spacing:.3px;}
+  #topbar .path b{color:var(--text-dim); font-weight:600;}
+  #topbar .status{display:flex; gap:8px; align-items:center; font-size:11.5px; color:var(--text-faint);}
+  .dot-live{width:6px; height:6px; border-radius:50%; background:var(--good); display:inline-block;}
+
+  #content{flex:1; overflow-y:auto; padding:6px 28px 60px;}
+
+  @media (max-width: 720px){
+    body{overflow-y:auto;}
+    #app{flex-direction:column; height:100vh; height:100dvh;}
+    #sidebar{
+      width:100%; height:auto; flex-direction:row; padding:0;
+      order:2; border-right:none; border-top:1px solid var(--border-soft);
+      overflow-x:auto; flex-shrink:0;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    #sidebar .brand, #sidebar .foot{display:none;}
+    nav{flex-direction:row; width:100%;}
+    .navbtn{
+      flex-direction:column; align-items:center; gap:2px;
+      flex:1; min-width:58px; padding:9px 3px 7px; font-size:9px;
+      border-radius:0;
+    }
+    .navbtn .ic{font-size:17px;}
+    .navbtn.active{background:none;}
+    .navbtn.active .ic{transform:scale(1.1);}
+    #main{order:1; flex:1; overflow:hidden;}
+    #content{padding:14px 16px 28px;}
+    .grid.cols-4, .grid.cols-3, .grid.cols-2{grid-template-columns:1fr;}
+    #topbar{padding:0 16px; padding-top:env(safe-area-inset-top);}
+    h1.pagetitle{font-size:19px;}
+  }
+
+  .tab{display:none;}
+  .tab.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  h1.pagetitle{font-size:22px; font-weight:700; margin-bottom:4px;}
+  .sub{color:var(--text-dim); font-size:12.5px; margin-bottom:22px;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:18px 20px; margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(220,130,160,.04), 0 6px 20px rgba(220,130,160,.05);
+  }
+  .panel h2{font-size:12.5px; letter-spacing:.3px; text-transform:uppercase; color:var(--text-dim); margin-bottom:14px; font-weight:700;}
+
+  .grid{display:grid; gap:14px;}
+  .grid.cols-4{grid-template-columns:repeat(4,1fr);}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:1000px){ .grid.cols-4{grid-template-columns:repeat(2,1fr);} .grid.cols-3{grid-template-columns:repeat(2,1fr);} }
+
+  .stat{background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:16px 18px; box-shadow:0 1px 2px rgba(220,130,160,.04);}
+  .stat .n{font-size:25px; font-weight:700; color:var(--accent-deep);}
+  .stat .l{font-size:10.5px; color:var(--text-faint); letter-spacing:.3px; text-transform:uppercase; margin-top:5px;}
+
+  .row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft); gap:10px;}
+  .row:last-child{border-bottom:none;}
+  .row .main{flex:1; min-width:0;}
+  .row .title{color:var(--text); font-size:13px; font-weight:500;}
+  .row .meta{color:var(--text-faint); font-size:11px; margin-top:2px;}
+  .badge{font-size:10px; padding:3px 9px; border-radius:20px; letter-spacing:.2px; white-space:nowrap; background:var(--panel-soft); color:var(--text-dim);}
+  .badge.accent{color:var(--accent-deep); background:var(--accent-soft);}
+  .badge.warn{color:var(--warn-text); background:var(--warn-bg);}
+  .badge.danger{color:var(--danger-text); background:var(--danger-bg);}
+  .badge.good{color:var(--good-text); background:var(--good-bg);}
+
+  .btn{
+    background:var(--panel-soft); border:1px solid transparent; color:var(--text-dim);
+    padding:8px 14px; font-size:12px; font-weight:600; border-radius:999px;
+  }
+  .btn:hover{background:var(--accent-soft); color:var(--accent-deep);}
+  .btn.primary{background:var(--accent-deep); color:#fff;}
+  .btn.primary:hover{background:#c8557f; color:#fff;}
+  .btn.danger:hover{background:#fbe4e2; color:#a13d38;}
+  .btn.small{padding:6px 11px; font-size:11px;}
+  .iconbtn{color:var(--text-faint); padding:4px 7px; font-size:13px; border-radius:8px;}
+  .iconbtn:hover{color:var(--danger); background:#fbe4e2;}
+
+  .form-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .form-row input, .form-row select, .form-row textarea{flex:1; min-width:120px;}
+  .form-row textarea{resize:vertical; min-height:38px;}
+
+  .empty{color:var(--text-faint); font-size:12px; padding:20px 4px; text-align:center; background:var(--panel-soft); border-radius:var(--radius-sm);}
+
+  .filters{display:flex; gap:6px; margin-bottom:14px;}
+  .filters button{padding:6px 13px; border-radius:999px; font-size:11px; color:var(--text-dim); background:var(--panel-soft); font-weight:600;}
+  .filters button.active{color:#fff; background:var(--accent-deep);}
+
+  input[type=checkbox]{width:15px; height:15px; accent-color:var(--accent-deep); cursor:pointer;}
+
+  .bar-cat{display:flex; align-items:center; gap:8px; margin-bottom:9px; font-size:11.5px;}
+  .bar-cat .name{width:100px; flex-shrink:0; color:var(--text-dim);}
+  .bar-cat .track{flex:1; height:7px; background:var(--panel-soft); border-radius:6px; overflow:hidden;}
+  .bar-cat .fill{height:100%; background:var(--accent); border-radius:6px;}
+  .bar-cat .val{width:60px; text-align:right; color:var(--text-faint); font-size:11px;}
+
+  .progress-track{flex:1; height:8px; background:var(--panel-soft); border-radius:6px; overflow:hidden;}
+  .progress-fill{height:100%; background:linear-gradient(90deg,#ffb6cd,var(--accent-deep)); border-radius:6px;}
+
+  a{color:var(--accent-deep); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  .note{font-size:11.5px; color:var(--text-dim); line-height:1.65; padding:14px 16px; background:var(--panel-soft); border-radius:var(--radius); margin-bottom:16px;}
+
+  .stars{display:flex; gap:2px; font-size:14px; color:var(--accent-deep);}
+
+  .msg-bubble{max-width:72%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.5;}
+  .msg-bubble.me{align-self:flex-end; background:var(--accent-deep); color:#fff; border-bottom-right-radius:4px;}
+  .msg-bubble.them{align-self:flex-start; background:var(--panel-soft); color:var(--text); border-bottom-left-radius:4px;}
+  .msg-bubble.sys{align-self:center; background:none; color:var(--text-faint); font-size:11px;}
+  .msg-time{font-size:9.5px; opacity:.7; margin-top:4px; display:block;}
+
+  #easter-heart{
+    font-size:14px; opacity:.5; cursor:pointer; user-select:none;
+    transition:transform .15s ease, opacity .15s ease; width:fit-content;
+  }
+  #easter-heart:hover{ opacity:1; transform:scale(1.3) rotate(-6deg); }
+
+  .confetti-piece{
+    position:fixed; top:-20px; pointer-events:none; z-index:9999;
+    animation-name:confetti-fall; animation-timing-function:linear; animation-fill-mode:forwards;
+  }
+  @keyframes confetti-fall{
+    to { transform:translateY(110vh) rotate(720deg); opacity:.85; }
+  }
+
+  #love-overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; z-index:10000; opacity:0; transition:opacity .4s ease;
+  }
+  #love-overlay.show{ opacity:1; }
+  #love-overlay .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:20px; padding:24px 36px;
+    box-shadow:0 14px 44px rgba(220,130,160,.28);
+    font-size:19px; font-weight:700; color:var(--accent-deep);
+    transform:scale(.9); transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  #love-overlay.show .card{ transform:scale(1); }
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="word">digi center</div>
+  <div class="dot"></div>
+  <div class="line">Getting things ready...</div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="brand"><div class="mark"></div><div class="name">digi center</div></div>
+    <nav id="nav">
+      <button class="navbtn" data-tab="dashboard"><span class="ic">🏡</span>Dashboard</button>
+      <button class="navbtn" data-tab="finance"><span class="ic">💗</span>Finance</button>
+      <button class="navbtn" data-tab="projects"><span class="ic">🎀</span>Projects</button>
+      <button class="navbtn" data-tab="tasks"><span class="ic">📝</span>Tasks</button>
+      <button class="navbtn" data-tab="calendar"><span class="ic">📅</span>Calendar</button>
+      <button class="navbtn" data-tab="writing"><span class="ic">✍️</span>Writing</button>
+      <button class="navbtn" data-tab="journal"><span class="ic">📔</span>Journal</button>
+      <button class="navbtn" data-tab="reading"><span class="ic">📖</span>Reading</button>
+      <button class="navbtn" data-tab="habits"><span class="ic">✨</span>Habits</button>
+      <button class="navbtn" data-tab="cycle"><span class="ic">🌙</span>Cycle</button>
+      <button class="navbtn" data-tab="wishlist"><span class="ic">🎁</span>Wishlist</button>
+      <button class="navbtn" data-tab="files"><span class="ic">🗂️</span>Notes</button>
+      <button class="navbtn" data-tab="settings"><span class="ic">⚙️</span>Settings</button>
+    </nav>
+    <div class="foot">
+      <div id="clock">--:--</div>
+      <div id="dateline" style="margin-top:2px;">--</div>
+      <div id="easter-heart" onclick="triggerEasterEgg()" style="margin-top:10px;">🩷</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <div class="path"><b id="path-current">Dashboard</b></div>
+      <div class="status"><span class="dot-live"></span> All set</div>
+    </div>
+
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <section class="tab active" id="tab-dashboard">
+        <h1 class="pagetitle" id="greeting">Hey!</h1>
+        <div class="sub">Here's everything, all in one place.</div>
+
+        <div class="grid cols-4" style="margin-bottom:6px;">
+          <div class="stat"><div class="n" id="stat-tasks">0</div><div class="l">Tasks Open</div></div>
+          <div class="stat"><div class="n" id="stat-overdue">0</div><div class="l">Overdue</div></div>
+          <div class="stat"><div class="n" id="stat-projects">0</div><div class="l">Active Projects</div></div>
+          <div class="stat"><div class="n" id="stat-balance">€0</div><div class="l">Balance</div></div>
+        </div>
+
+        <div class="grid cols-2">
+          <div class="panel">
+            <h2>Focus Timer</h2>
+            <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; padding:6px 0;">
+              <div id="timer-display" style="font-size:38px; font-weight:700; color:var(--accent-deep); font-variant-numeric:tabular-nums;">25:00</div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn small" onclick="setTimerPreset(25)">25</button>
+                <button class="btn small" onclick="setTimerPreset(5)">5</button>
+                <button class="btn small" onclick="setTimerPreset(15)">15</button>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn primary small" id="timer-startpause" onclick="toggleTimer()">Start</button>
+                <button class="btn small" onclick="resetTimer()">Reset</button>
+              </div>
+              <div class="meta" id="timer-sessions" style="font-size:11px; color:var(--text-faint);"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>How are you feeling?</h2>
+            <div id="mood-picker" style="display:flex; gap:10px; justify-content:center; font-size:26px; margin:10px 0 16px;"></div>
+            <div id="mood-strip" style="display:flex; gap:5px; justify-content:center;"></div>
+          </div>
+        </div>
+
+        <div class="grid cols-2">
+          <div class="panel">
+            <h2>Today's Focus</h2>
+            <div id="dash-tasks"></div>
+          </div>
+          <div class="panel">
+            <h2>Upcoming</h2>
+            <div id="dash-events"></div>
+          </div>
+        </div>
+
+        <div class="grid cols-2">
+          <div class="panel">
+            <h2>Project Status</h2>
+            <div id="dash-projects"></div>
+          </div>
+          <div class="panel">
+            <h2>Currently Reading</h2>
+            <div id="dash-reading"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FINANCE -->
+      <section class="tab" id="tab-finance">
+        <h1 class="pagetitle">Finance</h1>
+        <div class="sub">A simple budget tracker — nothing connects automatically, you're always in control.</div>
+
+        <div class="grid cols-3" style="margin-bottom:16px;">
+          <div class="stat"><div class="n" id="fin-total">€0</div><div class="l">Total Balance</div></div>
+          <div class="stat"><div class="n" id="fin-in">€0</div><div class="l">In — this month</div></div>
+          <div class="stat"><div class="n" id="fin-out">€0</div><div class="l">Out — this month</div></div>
+        </div>
+
+        <div class="grid cols-2">
+          <div class="panel">
+            <h2>Accounts</h2>
+            <div class="form-row">
+              <input id="acc-name" placeholder="Account name">
+              <input id="acc-start" type="number" step="0.01" placeholder="Starting balance">
+              <button class="btn primary small" onclick="addAccount()">Add</button>
+            </div>
+            <div id="accounts-list"></div>
+          </div>
+          <div class="panel">
+            <h2>Spend by Category</h2>
+            <div id="cat-breakdown"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Savings Goals</h2>
+          <div class="form-row">
+            <input id="goal-name" placeholder="What are you saving for?">
+            <input id="goal-target" type="number" step="0.01" placeholder="Target amount">
+            <button class="btn primary small" onclick="addGoal()">Add</button>
+          </div>
+          <div id="goals-list"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Transactions</h2>
+          <div class="form-row">
+            <label class="btn small" style="cursor:pointer;">Import bank statement<input type="file" accept=".csv,text/csv" style="display:none" onchange="handleCsvImport(event)"></label>
+            <select id="csv-account"></select>
+            <span class="meta" id="csv-status" style="font-size:11px; color:var(--text-faint); align-self:center;"></span>
+          </div>
+          <div class="form-row">
+            <input id="tx-desc" placeholder="Description">
+            <input id="tx-amount" type="number" step="0.01" placeholder="Amount (± )">
+            <input id="tx-cat" placeholder="Category">
+            <select id="tx-account"></select>
+            <input id="tx-date" type="date">
+            <button class="btn primary small" onclick="addTx()">Add</button>
+          </div>
+          <div id="tx-list"></div>
+        </div>
+      </section>
+
+      <!-- PROJECTS -->
+      <section class="tab" id="tab-projects">
+        <h1 class="pagetitle">Projects</h1>
+        <div class="sub">Everything you're working on.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="proj-name" placeholder="Project name">
+            <select id="proj-status">
+              <option>Idea</option>
+              <option>In Progress</option>
+              <option>Stuck</option>
+              <option>Done</option>
+              <option>Paused</option>
+            </select>
+            <button class="btn primary small" onclick="addProject()">Add</button>
+          </div>
+          <div id="projects-list"></div>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="tab" id="tab-tasks">
+        <h1 class="pagetitle">Tasks</h1>
+        <div class="sub">Everything left to do.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="task-text" placeholder="Task">
+            <input id="task-project" placeholder="Project (optional)">
+            <input id="task-due" type="date">
+            <select id="task-priority">
+              <option value="low">Low</option>
+              <option value="med" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+            <button class="btn primary small" onclick="addTask()">Add</button>
+          </div>
+          <div class="filters">
+            <button class="active" data-filter="all" onclick="setTaskFilter('all')">All</button>
+            <button data-filter="open" onclick="setTaskFilter('open')">Open</button>
+            <button data-filter="done" onclick="setTaskFilter('done')">Done</button>
+          </div>
+          <div id="tasks-list"></div>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="tab" id="tab-calendar">
+        <h1 class="pagetitle">Calendar</h1>
+        <div class="sub">Classes, deadlines, plans.</div>
+        <div class="panel">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <button class="btn small" onclick="calShiftMonth(-1)">←</button>
+            <h2 id="cal-month-label" style="margin:0;"></h2>
+            <button class="btn small" onclick="calShiftMonth(1)">→</button>
+          </div>
+          <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;"></div>
+        </div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="ev-title" placeholder="Event title">
+            <input id="ev-date" type="date">
+            <input id="ev-time" type="time">
+            <button class="btn primary small" onclick="addEvent()">Add</button>
+          </div>
+          <div id="events-list"></div>
+        </div>
+      </section>
+
+      <!-- JOURNAL -->
+      <section class="tab" id="tab-journal">
+        <h1 class="pagetitle">Journal</h1>
+        <div class="sub">A little space for whatever's on your mind.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="journal-date" type="date">
+            <textarea id="journal-text" placeholder="What's today been like?" style="flex:2; min-width:220px;"></textarea>
+            <button class="btn primary small" onclick="addJournal()">Save</button>
+          </div>
+          <div id="journal-list"></div>
+        </div>
+      </section>
+
+      <!-- READING -->
+      <section class="tab" id="tab-reading">
+        <h1 class="pagetitle">Reading</h1>
+        <div class="sub">What you're reading, want to read, and have finished.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="book-title" placeholder="Book title">
+            <input id="book-author" placeholder="Author">
+            <select id="book-status">
+              <option value="want">Want to read</option>
+              <option value="reading" selected>Reading</option>
+              <option value="finished">Finished</option>
+            </select>
+            <input id="book-pages" type="number" placeholder="Total pages (optional)">
+            <button class="btn primary small" onclick="addBook()">Add</button>
+          </div>
+          <div class="filters">
+            <button class="active" data-filter="all" onclick="setBookFilter('all')">All</button>
+            <button data-filter="reading" onclick="setBookFilter('reading')">Reading</button>
+            <button data-filter="want" onclick="setBookFilter('want')">Want to read</button>
+            <button data-filter="finished" onclick="setBookFilter('finished')">Finished</button>
+          </div>
+          <div id="books-list"></div>
+        </div>
+      </section>
+
+      <!-- WRITING -->
+      <section class="tab" id="tab-writing">
+        <h1 class="pagetitle">Writing</h1>
+        <div class="sub">Track your sessions — words, streaks, momentum.</div>
+
+        <div class="grid cols-3" style="margin-bottom:16px;">
+          <div class="stat"><div class="n" id="wr-streak">0</div><div class="l">Day Streak</div></div>
+          <div class="stat"><div class="n" id="wr-week">0</div><div class="l">Words This Week</div></div>
+          <div class="stat"><div class="n" id="wr-total">0</div><div class="l">Total Words Logged</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="form-row">
+            <input id="wr-date" type="date">
+            <input id="wr-project" placeholder="Project / story">
+            <input id="wr-words" type="number" placeholder="Words written">
+            <input id="wr-note" placeholder="Note (optional)">
+            <button class="btn primary small" onclick="addWriting()">Log session</button>
+          </div>
+          <div id="writing-list"></div>
+        </div>
+      </section>
+
+      <!-- HABITS -->
+      <section class="tab" id="tab-habits">
+        <h1 class="pagetitle">Habits</h1>
+        <div class="sub">Small things, done consistently.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="habit-name" placeholder="Habit — e.g. Drink water, Stretch, Read 10 min">
+            <button class="btn primary small" onclick="addHabit()">Add</button>
+          </div>
+          <div id="habits-list"></div>
+        </div>
+      </section>
+
+      <!-- CYCLE -->
+      <section class="tab" id="tab-cycle">
+        <h1 class="pagetitle">Cycle</h1>
+        <div class="sub">General wellness guidance by phase — not medical advice, just gentle context for what your body might want.</div>
+
+        <div class="panel" id="cycle-current"></div>
+
+        <div class="panel">
+          <h2>Settings</h2>
+          <div class="form-row">
+            <div style="flex:1; min-width:140px;">
+              <div class="meta" style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">Average cycle length (days)</div>
+              <input id="cycle-length" type="number" min="15" max="60">
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <div class="meta" style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">Average period length (days)</div>
+              <input id="period-length" type="number" min="1" max="14">
+            </div>
+            <button class="btn small" onclick="saveCycleSettings()" style="align-self:flex-end;">Save</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Log a period start</h2>
+          <div class="form-row">
+            <input id="cycle-start-date" type="date">
+            <button class="btn primary small" onclick="logCycleStart()">Log</button>
+          </div>
+          <div id="cycle-log-list"></div>
+        </div>
+      </section>
+
+      <!-- WISHLIST -->
+      <section class="tab" id="tab-wishlist">
+        <h1 class="pagetitle">Wishlist</h1>
+        <div class="sub">Things you're dreaming about.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="wish-item" placeholder="Item">
+            <input id="wish-note" placeholder="Note or link (optional)">
+            <button class="btn primary small" onclick="addWish()">Add</button>
+          </div>
+          <div id="wishlist-list"></div>
+        </div>
+      </section>
+<!-- NOTES / FILES -->
+      <section class="tab" id="tab-files">
+        <h1 class="pagetitle">Notes</h1>
+        <div class="sub">Quick links and notes — lecture links, articles, anything worth keeping handy.</div>
+        <div class="panel">
+          <div class="form-row">
+            <input id="file-title" placeholder="Title">
+            <input id="file-link" placeholder="Link or note text">
+            <button class="btn primary small" onclick="addLink()">Add</button>
+          </div>
+          <div id="files-list"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="tab" id="tab-settings">
+        <h1 class="pagetitle">Settings</h1>
+        <div class="panel">
+          <h2>Appearance</h2>
+          <div class="row">
+            <div class="main"><div class="title">Dark mode</div><div class="meta">Easier on the eyes at night</div></div>
+            <div class="toggle" id="dark-toggle" onclick="toggleDarkMode()"><i></i></div>
+          </div>
+        </div>
+        <div class="note">
+          Everything here is stored right on this Mac, plus synced to a private cloud database so your phone copy stays current — nothing is public, and nothing needs an account or sign-in from you. Finance is manual entry (or import a bank statement CSV) — there's no live bank connection, by design, for privacy.
+        </div>
+        <div class="panel">
+          <h2>Cloud Sync (Phone)</h2>
+          <div class="row">
+            <div class="main"><div class="title">Status</div><div class="meta" id="sync-status">Not synced yet</div></div>
+            <button class="btn small" onclick="manualSyncNow()">Sync now</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Your Data</h2>
+          <div class="row"><div class="main"><div class="title">Export a backup</div><div class="meta">Save everything as a file, just in case</div></div><button class="btn small" onclick="exportData()">Export</button></div>
+          <div class="row"><div class="main"><div class="title">Import a backup</div><div class="meta">Restore from a saved file</div></div><label class="btn small" style="cursor:pointer;">Import<input type="file" accept="application/json" style="display:none" onchange="importData(event)"></label></div>
+          <div class="row"><div class="main"><div class="title">Reset everything</div><div class="meta">Clears all data — can't be undone</div></div><button class="btn small danger" onclick="resetAll()">Reset</button></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="love-overlay"><div class="card">💗</div></div>
+
+<script>
+/* ============ STATE ============ */
+const STORAGE_KEY = 'digicenter-state-v1';
+let state = null;
+let taskFilter = 'all';
+let bookFilter = 'all';
+let saveTimer = null;
+
+function defaultState(){
+  return {
+    accounts: [],
+    transactions: [],
+    tasks: [],
+    projects: [],
+    events: [],
+    books: [],
+    links: [],
+    writing: [],
+    habits: [],
+    cycle: { cycleLength: 28, periodLength: 5, logs: [] },
+    journal: [],
+    wishlist: [],
+    savingsGoals: [],
+    moods: {},
+    study: { byDate: {} },
+    settings: { darkMode: false }
+  };
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function eur(n){ n = Number(n)||0; return (n<0?'-':'') + '€' + Math.abs(n).toFixed(2); }
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? JSON.parse(raw) : defaultState();
+  }catch(e){
+    state = defaultState();
+  }
+  const d = defaultState();
+  for(const k in d){ if(!(k in state)) state[k] = d[k]; }
+  if(!state.settings) state.settings = { darkMode:false };
+  if(!('darkMode' in state.settings)) state.settings.darkMode = false;
+  if(!state.study) state.study = { byDate:{} };
+  if(!state.study.byDate) state.study.byDate = {};
+  if(!state.moods) state.moods = {};
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 400);
+  scheduleCloudPush();
+}
+async function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+/* ============ CLOUD SYNC (Supabase) ============ */
+const SUPABASE_URL = 'https://zwsdocoskcseaihuopfe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_gC7VaO7ANyrr0fDuCE_rnQ_h7pveUzv';
+const SYNC_ROW_ID = 'digi-main';
+let lastAppliedUpdatedAt = null;
+let cloudPushTimer = null;
+
+function setSyncStatus(text){
+  const el = document.getElementById('sync-status');
+  if(el) el.textContent = text;
+}
+async function pullFromCloud(applyIfNewer){
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/digi_center_state?id=eq.${SYNC_ROW_ID}&select=data,updated_at`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY }
+    });
+    if(!resp.ok) throw new Error(resp.status);
+    const rows = await resp.json();
+    if(!rows.length) return null;
+    const row = rows[0];
+    if(applyIfNewer && (!lastAppliedUpdatedAt || new Date(row.updated_at) > new Date(lastAppliedUpdatedAt))){
+      state = row.data;
+      const d = defaultState();
+      for(const k in d){ if(!(k in state)) state[k] = d[k]; }
+      lastAppliedUpdatedAt = row.updated_at;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+      setSyncStatus('Synced from cloud · ' + new Date(row.updated_at).toLocaleTimeString());
+    }
+    return row;
+  }catch(e){
+    setSyncStatus('Cloud sync offline');
+    return null;
+  }
+}
+async function pushToCloud(){
+  try{
+    const now = new Date().toISOString();
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/digi_center_state`, {
+      method:'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer '+SUPABASE_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ id: SYNC_ROW_ID, data: state, updated_at: now })
+    });
+    if(!resp.ok) throw new Error(resp.status);
+    lastAppliedUpdatedAt = now;
+    setSyncStatus('Synced · ' + new Date(now).toLocaleTimeString());
+  }catch(e){
+    setSyncStatus('Cloud sync failed — will retry');
+  }
+}
+function scheduleCloudPush(){
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(pushToCloud, 1500);
+}
+function manualSyncNow(){
+  setSyncStatus('Syncing...');
+  pushToCloud();
+}
+function startCloudPolling(){
+  setInterval(()=>pullFromCloud(true), 7000);
+}
+
+/* ============ BOOT / NAV ============ */
+function boot(){
+  setTimeout(()=>{
+    document.getElementById('boot').style.opacity = '0';
+    setTimeout(()=>{
+      document.getElementById('boot').style.display='none';
+      document.getElementById('app').classList.add('ready');
+    }, 380);
+  }, 500);
+}
+function initNav(){
+  document.querySelectorAll('.navbtn').forEach(btn=>{
+    btn.addEventListener('click', ()=> showTab(btn.dataset.tab));
+  });
+}
+function showTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector('.navbtn[data-tab="'+tab+'"]').classList.add('active');
+  const label = document.querySelector('.navbtn[data-tab="'+tab+'"]').textContent.trim();
+  document.getElementById('path-current').textContent = label;
+}
+function tickClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('dateline').textContent = now.toLocaleDateString([], {weekday:'short', day:'2-digit', month:'short'});
+}
+
+/* ============ DASHBOARD ============ */
+function renderDashboard(){
+  const h = new Date().getHours();
+  const greet = h<6?'Still up?':h<12?'Good morning!':h<18?'Good afternoon!':'Good evening!';
+  document.getElementById('greeting').textContent = greet;
+
+  const openTasks = state.tasks.filter(t=>!t.done);
+  const today = new Date().toISOString().slice(0,10);
+  const overdue = openTasks.filter(t=>t.due && t.due < today);
+  document.getElementById('stat-tasks').textContent = openTasks.length;
+  document.getElementById('stat-overdue').textContent = overdue.length;
+  document.getElementById('stat-projects').textContent = state.projects.filter(p=>p.status==='In Progress').length;
+  document.getElementById('stat-balance').textContent = eur(totalBalance());
+
+  const dashTasks = document.getElementById('dash-tasks');
+  const sorted = [...openTasks].sort((a,b)=>{
+    const pr = {high:0, med:1, low:2};
+    if((a.due||'') !== (b.due||'')) return (a.due||'9999') < (b.due||'9999') ? -1 : 1;
+    return pr[a.priority]-pr[b.priority];
+  }).slice(0,6);
+  dashTasks.innerHTML = sorted.length ? sorted.map(t=>`
+    <div class="row"><div class="main"><div class="title">${esc(t.text)}</div>
+    <div class="meta">${t.project?esc(t.project)+' · ':''}${t.due?('due '+t.due):'no due date'}</div></div>
+    <span class="badge ${t.priority==='high'?'danger':t.priority==='med'?'warn':''}">${t.priority}</span></div>
+  `).join('') : '<div class="empty">Nothing open — add your first task above.</div>';
+
+  const dashEv = document.getElementById('dash-events');
+  const upcoming = [...state.events].filter(e=>e.date>=today).sort((a,b)=> (a.date+a.time) < (b.date+b.time) ? -1:1).slice(0,5);
+  dashEv.innerHTML = upcoming.length ? upcoming.map(e=>`
+    <div class="row"><div class="main"><div class="title">${esc(e.title)}</div><div class="meta">${e.date}${e.time?' · '+e.time:''}</div></div></div>
+  `).join('') : '<div class="empty">Nothing coming up yet.</div>';
+
+  const dashProj = document.getElementById('dash-projects');
+  dashProj.innerHTML = state.projects.length ? state.projects.map(p=>`
+    <div class="row"><div class="main"><div class="title">${esc(p.name)}</div><div class="meta">${esc((p.thoughts||'').slice(0,60))}</div></div>
+    <span class="badge ${statusBadge(p.status)}">${esc(p.status)}</span></div>
+  `).join('') : '<div class="empty">No projects yet.</div>';
+
+  const dashRead = document.getElementById('dash-reading');
+  const reading = state.books.filter(b=>b.status==='reading').slice(0,4);
+  dashRead.innerHTML = reading.length ? reading.map(b=>{
+    const pct = (b.pages && b.currentPage) ? Math.min(100, Math.round(b.currentPage/b.pages*100)) : null;
+    return `<div class="row"><div class="main"><div class="title">${esc(b.title)}</div><div class="meta">${esc(b.author||'')}</div></div>
+    ${pct!=null ? `<span class="badge accent">${pct}%</span>` : ''}</div>`;
+  }).join('') : '<div class="empty">Nothing in progress — add a book in Reading.</div>';
+}
+function statusBadge(s){
+  if(s==='Stuck') return 'danger';
+  if(s==='In Progress') return 'accent';
+  if(s==='Done') return 'good';
+  if(s==='Paused') return 'warn';
+  return '';
+}
+
+/* ============ FINANCE ============ */
+function totalBalance(){
+  return state.accounts.reduce((sum,a)=> sum + accountBalance(a.id), 0);
+}
+function accountBalance(accId){
+  const acc = state.accounts.find(a=>a.id===accId);
+  if(!acc) return 0;
+  const txSum = state.transactions.filter(t=>t.account===accId).reduce((s,t)=>s+Number(t.amount),0);
+  return Number(acc.start) + txSum;
+}
+function renderFinance(){
+  document.getElementById('fin-total').textContent = eur(totalBalance());
+
+  const ym = new Date().toISOString().slice(0,7);
+  const monthTx = state.transactions.filter(t=>t.date && t.date.slice(0,7)===ym);
+  const inSum = monthTx.filter(t=>t.amount>0).reduce((s,t)=>s+Number(t.amount),0);
+  const outSum = monthTx.filter(t=>t.amount<0).reduce((s,t)=>s+Number(t.amount),0);
+  document.getElementById('fin-in').textContent = eur(inSum);
+  document.getElementById('fin-out').textContent = eur(outSum);
+
+  const accSel = document.getElementById('tx-account');
+  accSel.innerHTML = state.accounts.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('') || '<option value="">No account yet</option>';
+  const csvSel = document.getElementById('csv-account');
+  if(csvSel) csvSel.innerHTML = state.accounts.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('') || '<option value="">No account yet</option>';
+
+  const accList = document.getElementById('accounts-list');
+  accList.innerHTML = state.accounts.length ? state.accounts.map(a=>`
+    <div class="row"><div class="main"><div class="title">${esc(a.name)}</div><div class="meta">started ${eur(a.start)}</div></div>
+    <span class="badge accent">${eur(accountBalance(a.id))}</span>
+    <button class="iconbtn" onclick="delAccount('${a.id}')">✕</button></div>
+  `).join('') : '<div class="empty">No accounts yet. Add one above.</div>';
+
+  const txList = document.getElementById('tx-list');
+  const sorted = [...state.transactions].sort((a,b)=> (b.date||'') < (a.date||'') ? -1 : 1);
+  txList.innerHTML = sorted.length ? sorted.slice(0,40).map(t=>{
+    const acc = state.accounts.find(a=>a.id===t.account);
+    return `<div class="row"><div class="main"><div class="title">${esc(t.desc)}</div>
+    <div class="meta">${t.date||'no date'} · ${esc(t.category||'uncategorized')} · ${acc?esc(acc.name):'—'}</div></div>
+    <span class="badge ${t.amount<0?'danger':'good'}">${eur(t.amount)}</span>
+    <button class="iconbtn" onclick="delTx('${t.id}')">✕</button></div>`;
+  }).join('') : '<div class="empty">No transactions yet.</div>';
+
+  const cats = {};
+  state.transactions.filter(t=>t.amount<0).forEach(t=>{
+    const c = t.category || 'uncategorized';
+    cats[c] = (cats[c]||0) + Math.abs(Number(t.amount));
+  });
+  const catEntries = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const max = catEntries.length ? catEntries[0][1] : 1;
+  const catBox = document.getElementById('cat-breakdown');
+  catBox.innerHTML = catEntries.length ? catEntries.map(([name,val])=>`
+    <div class="bar-cat"><div class="name">${esc(name)}</div><div class="track"><div class="fill" style="width:${(val/max*100).toFixed(0)}%"></div></div><div class="val">${eur(val)}</div></div>
+  `).join('') : '<div class="empty">No spending logged yet.</div>';
+}
+function addAccount(){
+  const name = document.getElementById('acc-name').value.trim();
+  const start = parseFloat(document.getElementById('acc-start').value) || 0;
+  if(!name) return;
+  state.accounts.push({id:uid(), name, start});
+  document.getElementById('acc-name').value='';
+  document.getElementById('acc-start').value='';
+  scheduleSave(); renderFinance(); renderDashboard();
+}
+function delAccount(id){
+  state.accounts = state.accounts.filter(a=>a.id!==id);
+  state.transactions = state.transactions.filter(t=>t.account!==id);
+  scheduleSave(); renderFinance(); renderDashboard();
+}
+function addTx(){
+  const desc = document.getElementById('tx-desc').value.trim();
+  const amount = parseFloat(document.getElementById('tx-amount').value);
+  const category = document.getElementById('tx-cat').value.trim();
+  const account = document.getElementById('tx-account').value;
+  const date = document.getElementById('tx-date').value || new Date().toISOString().slice(0,10);
+  if(!desc || isNaN(amount) || !account) return;
+  state.transactions.push({id:uid(), desc, amount, category, account, date});
+  document.getElementById('tx-desc').value='';
+  document.getElementById('tx-amount').value='';
+  document.getElementById('tx-cat').value='';
+  scheduleSave(); renderFinance(); renderDashboard();
+}
+function delTx(id){
+  state.transactions = state.transactions.filter(t=>t.id!==id);
+  scheduleSave(); renderFinance(); renderDashboard();
+}
+
+/* ============ CSV IMPORT ============ */
+function normalizeDate(raw){
+  raw = (raw||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0,10);
+  const m = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+  if(m){ return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
+  return '';
+}
+function normalizeAmount(raw){
+  if(raw==null) return NaN;
+  let s = String(raw).trim().replace(/[€\s]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.');
+  return parseFloat(s);
+}
+function hasMojibake(text){
+  return (text.match(/\uFFFD/g)||[]).length > 2;
+}
+function parseCsvFull(text){
+  const semi = (text.match(/;/g)||[]).length;
+  const comma = (text.match(/,/g)||[]).length;
+  const delim = semi > comma ? ';' : ',';
+  const rows = []; let row = []; let field = ''; let inQ = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; } else { inQ = false; }
+      } else if(c !== '\r'){
+        field += c;
+      }
+    } else {
+      if(c === '"'){ inQ = true; }
+      else if(c === delim){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); field=''; rows.push(row); row=[]; }
+      else if(c === '\r'){ /* skip */ }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+function findHeaderRow(rows){
+  const dateKw=['date']; const amtKw=['montant','amount']; const debKw=['debit','débit']; const credKw=['credit','crédit'];
+  for(let i=0;i<Math.min(rows.length,60);i++){
+    const cells = rows[i].map(c=>c.toLowerCase());
+    const hasDate = cells.some(c=>dateKw.some(k=>c.includes(k)));
+    const hasAmt = cells.some(c=>amtKw.some(k=>c.includes(k))||debKw.some(k=>c.includes(k))||credKw.some(k=>c.includes(k)));
+    if(hasDate && hasAmt) return i;
+  }
+  return -1;
+}
+function handleCsvImport(evt){
+  const file = evt.target.files[0];
+  const accountId = document.getElementById('csv-account').value;
+  const statusEl = document.getElementById('csv-status');
+  if(!file) return;
+  if(!accountId){ statusEl.textContent = 'Add an account first, then pick it above.'; evt.target.value=''; return; }
+
+  const process = (text) => {
+    try{
+      const rows = parseCsvFull(text);
+      const headerIdx = findHeaderRow(rows);
+      if(headerIdx < 0){
+        statusEl.textContent = "Couldn't find the columns — check the file has headers like Date / Montant / Débit / Crédit.";
+        return;
+      }
+      const header = rows[headerIdx].map(h=>h.toLowerCase());
+      const find = (keywords) => header.findIndex(h => keywords.some(k=>h.includes(k)));
+      const dateIdx = find(['date']);
+      const descIdx = find(['libell','description','label','intitul','détail','detail']);
+      const amountIdx = find(['montant','amount']);
+      const debitIdx = find(['debit','débit']);
+      const creditIdx = find(['credit','crédit']);
+      let count = 0, skipped = 0;
+      for(let i=headerIdx+1;i<rows.length;i++){
+        const row = rows[i];
+        if(!row || row.length < 2 || row.every(c=>!c.trim())) continue;
+        const date = normalizeDate(row[dateIdx]||'');
+        if(!date){ skipped++; continue; }
+        let desc = descIdx>=0 ? row[descIdx] : 'Imported transaction';
+        desc = (desc||'Imported transaction').replace(/\s+/g,' ').trim().slice(0,140);
+        let amount;
+        if(amountIdx>=0 && row[amountIdx] && row[amountIdx].trim()){
+          amount = normalizeAmount(row[amountIdx]);
+        } else {
+          const debitRaw = debitIdx>=0 ? row[debitIdx] : '';
+          const creditRaw = creditIdx>=0 ? row[creditIdx] : '';
+          const debit = debitRaw && debitRaw.trim() ? normalizeAmount(debitRaw) : 0;
+          const credit = creditRaw && creditRaw.trim() ? normalizeAmount(creditRaw) : 0;
+          amount = (isNaN(credit)?0:credit) - (isNaN(debit)?0:Math.abs(debit));
+        }
+        if(isNaN(amount)){ skipped++; continue; }
+        state.transactions.push({id:uid(), desc, amount, category:'', account: accountId, date});
+        count++;
+      }
+      statusEl.textContent = count ? ('Imported '+count+' transactions.'+(skipped?(' ('+skipped+' skipped)'):'')) : 'No transactions recognized in that file.';
+      scheduleSave(); renderFinance(); renderDashboard();
+    }catch(e){
+      statusEl.textContent = 'Could not read that file.';
+    }
+  };
+
+  const reader1 = new FileReader();
+  reader1.onload = () => {
+    const text = reader1.result;
+    if(hasMojibake(text)){
+      const reader2 = new FileReader();
+      reader2.onload = () => process(reader2.result);
+      reader2.onerror = () => process(text);
+      try{ reader2.readAsText(file, 'windows-1252'); } catch(e){ process(text); }
+    } else {
+      process(text);
+    }
+  };
+  reader1.readAsText(file);
+  evt.target.value = '';
+}
+
+/* ============ PROJECTS ============ */
+function renderProjects(){
+  const box = document.getElementById('projects-list');
+  box.innerHTML = state.projects.length ? state.projects.map(p=>`
+    <div class="row" style="align-items:flex-start;">
+      <div class="main">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <div class="title">${esc(p.name)}</div>
+          <span class="badge ${statusBadge(p.status)}">${esc(p.status)}</span>
+        </div>
+        <textarea placeholder="What are you thinking about this?" style="width:100%; min-height:56px;" onchange="updateProjectThoughts('${p.id}', this.value)">${esc(p.thoughts||'')}</textarea>
+      </div>
+      <button class="iconbtn" onclick="delProject('${p.id}')">✕</button>
+    </div>
+  `).join('') : '<div class="empty">No projects yet — add your first one above.</div>';
+}
+function addProject(){
+  const name = document.getElementById('proj-name').value.trim();
+  const status = document.getElementById('proj-status').value;
+  if(!name) return;
+  state.projects.push({id:uid(), name, status, thoughts:''});
+  document.getElementById('proj-name').value='';
+  scheduleSave(); renderProjects(); renderDashboard();
+}
+function updateProjectThoughts(id, val){
+  const p = state.projects.find(p=>p.id===id);
+  if(p){ p.thoughts = val; scheduleSave(); }
+}
+function delProject(id){
+  state.projects = state.projects.filter(p=>p.id!==id);
+  scheduleSave(); renderProjects(); renderDashboard();
+}
+
+/* ============ TASKS ============ */
+function setTaskFilter(f){
+  taskFilter = f;
+  document.querySelectorAll('#tab-tasks .filters button').forEach(b=>b.classList.toggle('active', b.dataset.filter===f));
+  renderTasks();
+}
+function renderTasks(){
+  const box = document.getElementById('tasks-list');
+  let list = state.tasks;
+  if(taskFilter==='open') list = list.filter(t=>!t.done);
+  if(taskFilter==='done') list = list.filter(t=>t.done);
+  const today = new Date().toISOString().slice(0,10);
+  box.innerHTML = list.length ? list.map(t=>{
+    const overdue = !t.done && t.due && t.due < today;
+    return `<div class="row">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
+      <div class="main" style="margin-left:10px; ${t.done?'opacity:.45; text-decoration:line-through;':''}">
+        <div class="title">${esc(t.text)}</div>
+        <div class="meta">${t.project?esc(t.project)+' · ':''}${t.due?('due '+t.due):'no due date'}</div>
+      </div>
+      <span class="badge ${overdue?'danger':t.priority==='high'?'warn':''}">${overdue?'overdue':t.priority}</span>
+      <button class="iconbtn" onclick="delTask('${t.id}')">✕</button>
+    </div>`;
+  }).join('') : '<div class="empty">Nothing here.</div>';
+}
+function addTask(){
+  const text = document.getElementById('task-text').value.trim();
+  const project = document.getElementById('task-project').value.trim();
+  const due = document.getElementById('task-due').value;
+  const priority = document.getElementById('task-priority').value;
+  if(!text) return;
+  state.tasks.push({id:uid(), text, project, due, priority, done:false});
+  document.getElementById('task-text').value='';
+  document.getElementById('task-project').value='';
+  document.getElementById('task-due').value='';
+  scheduleSave(); renderTasks(); renderDashboard();
+}
+function toggleTask(id){
+  const t = state.tasks.find(t=>t.id===id);
+  if(t){ t.done = !t.done; scheduleSave(); renderTasks(); renderDashboard(); }
+}
+function delTask(id){
+  state.tasks = state.tasks.filter(t=>t.id!==id);
+  scheduleSave(); renderTasks(); renderDashboard();
+}
+
+/* ============ CALENDAR ============ */
+/* ============ CALENDAR ============ */
+let calViewDate = new Date();
+function calShiftMonth(delta){
+  calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth()+delta, 1);
+  renderCalendarGrid();
+}
+function renderCalendarGrid(){
+  const label = document.getElementById('cal-month-label');
+  const grid = document.getElementById('cal-grid');
+  if(!label || !grid) return;
+  const y = calViewDate.getFullYear(), m = calViewDate.getMonth();
+  label.textContent = calViewDate.toLocaleDateString([], {month:'long', year:'numeric'});
+
+  const firstDay = new Date(y, m, 1);
+  const startOffset = (firstDay.getDay()+6)%7; // Monday-first
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+
+  const eventsByDay = {};
+  state.events.forEach(e=>{ (eventsByDay[e.date] = eventsByDay[e.date]||[]).push(e); });
+
+  let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div style="text-align:center; font-size:10.5px; color:var(--text-faint); font-weight:600; padding-bottom:4px;">${d}</div>`).join('');
+  for(let i=0;i<startOffset;i++) html += `<div></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    const dayEvents = eventsByDay[dateStr] || [];
+    html += `<div onclick="calPickDate('${dateStr}')" style="cursor:pointer; min-height:56px; border-radius:10px; padding:6px; background:${isToday?'var(--accent-soft)':'var(--panel-soft)'}; border:1px solid ${isToday?'var(--accent)':'transparent'};">
+      <div style="font-size:11px; font-weight:${isToday?'700':'500'}; color:${isToday?'var(--accent-deep)':'var(--text-dim)'};">${d}</div>
+      ${dayEvents.slice(0,2).map(e=>`<div style="font-size:9.5px; color:var(--accent-deep); background:var(--panel); border-radius:4px; padding:1px 4px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(e.title)}</div>`).join('')}
+      ${dayEvents.length>2 ? `<div style="font-size:9px; color:var(--text-faint); margin-top:2px;">+${dayEvents.length-2} more</div>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+function calPickDate(dateStr){
+  document.getElementById('ev-date').value = dateStr;
+}
+function renderEvents(){
+  const box = document.getElementById('events-list');
+  const sorted = [...state.events].sort((a,b)=> (a.date+a.time) < (b.date+b.time) ? -1 : 1);
+  box.innerHTML = sorted.length ? sorted.map(e=>`
+    <div class="row"><div class="main"><div class="title">${esc(e.title)}</div><div class="meta">${e.date}${e.time?' · '+e.time:''}</div></div>
+    <button class="iconbtn" onclick="delEvent('${e.id}')">✕</button></div>
+  `).join('') : '<div class="empty">No events yet.</div>';
+}
+function addEvent(){
+  const title = document.getElementById('ev-title').value.trim();
+  const date = document.getElementById('ev-date').value;
+  const time = document.getElementById('ev-time').value;
+  if(!title || !date) return;
+  state.events.push({id:uid(), title, date, time});
+  document.getElementById('ev-title').value='';
+  scheduleSave(); renderEvents(); renderCalendarGrid(); renderDashboard();
+}
+function delEvent(id){
+  state.events = state.events.filter(e=>e.id!==id);
+  scheduleSave(); renderEvents(); renderCalendarGrid(); renderDashboard();
+}
+
+/* ============ READING ============ */
+function setBookFilter(f){
+  bookFilter = f;
+  document.querySelectorAll('#tab-reading .filters button').forEach(b=>b.classList.toggle('active', b.dataset.filter===f));
+  renderBooks();
+}
+function statusLabel(s){
+  return s==='want' ? 'Want to read' : s==='finished' ? 'Finished' : 'Reading';
+}
+function renderBooks(){
+  const box = document.getElementById('books-list');
+  let list = state.books;
+  if(bookFilter!=='all') list = list.filter(b=>b.status===bookFilter);
+  box.innerHTML = list.length ? list.map(b=>{
+    const pct = (b.pages && b.currentPage) ? Math.min(100, Math.round(b.currentPage/b.pages*100)) : null;
+    return `<div class="row">
+      <div class="main">
+        <div class="title">${esc(b.title)}</div>
+        <div class="meta">${esc(b.author||'')}</div>
+        ${b.status==='reading' && b.pages ? `
+          <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+            <div class="progress-track"><div class="progress-fill" style="width:${pct||0}%"></div></div>
+            <input type="number" style="width:64px; padding:5px 8px;" value="${b.currentPage||0}" min="0" max="${b.pages}" onchange="updateBookProgress('${b.id}', this.value)">
+            <span class="meta" style="white-space:nowrap;">/ ${b.pages}p</span>
+          </div>
+        ` : ''}
+        ${b.status==='finished' ? `<div class="stars" style="margin-top:6px;">${[1,2,3,4,5].map(n=>`<span onclick="setRating('${b.id}',${n})" style="cursor:pointer;">${(b.rating||0)>=n?'★':'☆'}</span>`).join('')}</div>` : ''}
+      </div>
+      <select onchange="setBookStatus('${b.id}', this.value)" style="width:auto;">
+        <option value="want" ${b.status==='want'?'selected':''}>Want to read</option>
+        <option value="reading" ${b.status==='reading'?'selected':''}>Reading</option>
+        <option value="finished" ${b.status==='finished'?'selected':''}>Finished</option>
+      </select>
+      <button class="iconbtn" onclick="delBook('${b.id}')">✕</button>
+    </div>`;
+  }).join('') : '<div class="empty">No books yet — add one above.</div>';
+}
+function addBook(){
+  const title = document.getElementById('book-title').value.trim();
+  const author = document.getElementById('book-author').value.trim();
+  const status = document.getElementById('book-status').value;
+  const pages = parseInt(document.getElementById('book-pages').value) || null;
+  if(!title) return;
+  state.books.push({id:uid(), title, author, status, pages, currentPage:0, rating:0});
+  document.getElementById('book-title').value='';
+  document.getElementById('book-author').value='';
+  document.getElementById('book-pages').value='';
+  scheduleSave(); renderBooks(); renderDashboard();
+}
+function updateBookProgress(id, val){
+  const b = state.books.find(b=>b.id===id);
+  if(b){ b.currentPage = Math.max(0, parseInt(val)||0); scheduleSave(); renderBooks(); }
+}
+function setBookStatus(id, status){
+  const b = state.books.find(b=>b.id===id);
+  if(b){ b.status = status; scheduleSave(); renderBooks(); renderDashboard(); }
+}
+function setRating(id, n){
+  const b = state.books.find(b=>b.id===id);
+  if(b){ b.rating = n; scheduleSave(); renderBooks(); }
+}
+function delBook(id){
+  state.books = state.books.filter(b=>b.id!==id);
+  scheduleSave(); renderBooks(); renderDashboard();
+}
+
+/* ============ WRITING ============ */
+function renderWriting(){
+  const list = [...state.writing].sort((a,b)=> a.date < b.date ? 1 : -1);
+  const box = document.getElementById('writing-list');
+  box.innerHTML = list.length ? list.map(w=>`
+    <div class="row"><div class="main"><div class="title">${esc(w.project||'Untitled')} — ${w.words} words</div>
+    <div class="meta">${w.date}${w.note?(' · '+esc(w.note)):''}</div></div>
+    <button class="iconbtn" onclick="delWriting('${w.id}')">✕</button></div>
+  `).join('') : '<div class="empty">No sessions logged yet — log your first one above.</div>';
+
+  const total = state.writing.reduce((s,w)=>s+(Number(w.words)||0),0);
+  document.getElementById('wr-total').textContent = total;
+
+  const now = new Date();
+  const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
+  const weekWords = state.writing.filter(w=>new Date(w.date) >= weekAgo).reduce((s,w)=>s+(Number(w.words)||0),0);
+  document.getElementById('wr-week').textContent = weekWords;
+
+  const daysWithEntries = new Set(state.writing.map(w=>w.date));
+  let streak = 0;
+  let d = new Date();
+  while(true){
+    const key = d.toISOString().slice(0,10);
+    if(daysWithEntries.has(key)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  document.getElementById('wr-streak').textContent = streak;
+}
+function addWriting(){
+  const date = document.getElementById('wr-date').value || new Date().toISOString().slice(0,10);
+  const project = document.getElementById('wr-project').value.trim();
+  const words = parseInt(document.getElementById('wr-words').value);
+  const note = document.getElementById('wr-note').value.trim();
+  if(isNaN(words)) return;
+  state.writing.push({id:uid(), date, project, words, note});
+  document.getElementById('wr-project').value='';
+  document.getElementById('wr-words').value='';
+  document.getElementById('wr-note').value='';
+  scheduleSave(); renderWriting();
+}
+function delWriting(id){
+  state.writing = state.writing.filter(w=>w.id!==id);
+  scheduleSave(); renderWriting();
+}
+
+/* ============ HABITS ============ */
+function habitStreak(habit){
+  let streak = 0;
+  let d = new Date();
+  while(true){
+    const key = d.toISOString().slice(0,10);
+    if(habit.log && habit.log[key]){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+function renderHabits(){
+  const box = document.getElementById('habits-list');
+  const today = new Date().toISOString().slice(0,10);
+  box.innerHTML = state.habits.length ? state.habits.map(h=>{
+    const days = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const key = d.toISOString().slice(0,10);
+      days.push({key, done: !!(h.log && h.log[key])});
+    }
+    const doneToday = !!(h.log && h.log[today]);
+    return `<div class="row">
+      <div class="main">
+        <div class="title">${esc(h.name)}</div>
+        <div style="display:flex; gap:5px; margin-top:8px;">
+          ${days.map(d=>`<div style="width:18px; height:18px; border-radius:5px; background:${d.done?'var(--accent-deep)':'var(--panel-soft)'};"></div>`).join('')}
+        </div>
+      </div>
+      <span class="badge accent">${habitStreak(h)} day streak</span>
+      <button class="btn small ${doneToday?'primary':''}" onclick="toggleHabitToday('${h.id}')">${doneToday?'Done today ✓':'Mark today'}</button>
+      <button class="iconbtn" onclick="delHabit('${h.id}')">✕</button>
+    </div>`;
+  }).join('') : '<div class="empty">No habits yet — add your first one above.</div>';
+}
+function addHabit(){
+  const name = document.getElementById('habit-name').value.trim();
+  if(!name) return;
+  state.habits.push({id:uid(), name, log:{}});
+  document.getElementById('habit-name').value='';
+  scheduleSave(); renderHabits();
+}
+function toggleHabitToday(id){
+  const h = state.habits.find(h=>h.id===id);
+  if(!h) return;
+  const today = new Date().toISOString().slice(0,10);
+  h.log = h.log || {};
+  h.log[today] = !h.log[today];
+  scheduleSave(); renderHabits();
+}
+function delHabit(id){
+  state.habits = state.habits.filter(h=>h.id!==id);
+  scheduleSave(); renderHabits();
+}
+
+/* ============ CYCLE ============ */
+const CYCLE_PHASES = {
+  menstrual: {
+    label: 'Menstrual',
+    emoji: '🌑',
+    desc: "Energy is naturally lower — the body's doing real work.",
+    food: "Iron-rich foods (leafy greens, lentils, red meat if you eat it), warm and comforting meals, staying well hydrated.",
+    physical: "Gentle movement if any — walking, stretching, restorative yoga. Rest is productive right now, not lazy.",
+    social: "Totally normal to want more solitude and quiet. Lower-key plans, or none at all, are a fine choice."
+  },
+  follicular: {
+    label: 'Follicular',
+    emoji: '🌱',
+    desc: "Energy tends to rise — often the best window for starting new things.",
+    food: "Lighter, fresh foods — vegetables, lean proteins, fermented foods — tend to sit well here.",
+    physical: "Good window for higher-intensity workouts, trying something new, building momentum.",
+    social: "Often the most outgoing, curious phase — good time for social plans and new ideas."
+  },
+  ovulation: {
+    label: 'Ovulation',
+    emoji: '☀️',
+    desc: "Energy and confidence often peak around here.",
+    food: "Light, fibre-rich, anti-inflammatory foods — lots of vegetables, healthy fats.",
+    physical: "Usually the best-tolerated window for intense exercise, if that's something you enjoy.",
+    social: "Often the most socially confident stretch — good timing for things that matter to you, conversations, plans."
+  },
+  luteal: {
+    label: 'Luteal',
+    emoji: '🌗',
+    desc: "Energy gradually tapers off; some people notice mood or appetite shifts here.",
+    food: "Complex carbs, magnesium-rich foods (dark chocolate, nuts, seeds), easing off caffeine and sugar can help some people.",
+    physical: "Gentler movement — strength training, pilates, walking — rather than pushing hard.",
+    social: "Patience and social battery may run lower — it's okay to protect your energy and say no to things."
+  }
+};
+function getCyclePhase(dayInCycle, cycleLength, periodLength){
+  const ovulationDay = Math.round(cycleLength/2);
+  if(dayInCycle <= periodLength) return 'menstrual';
+  if(dayInCycle < ovulationDay - 2) return 'follicular';
+  if(dayInCycle <= ovulationDay + 2) return 'ovulation';
+  return 'luteal';
+}
+function renderCycle(){
+  document.getElementById('cycle-length').value = state.cycle.cycleLength;
+  document.getElementById('period-length').value = state.cycle.periodLength;
+
+  const box = document.getElementById('cycle-current');
+  const logs = [...state.cycle.logs].sort((a,b)=> a.date < b.date ? 1 : -1);
+  if(!logs.length){
+    box.innerHTML = '<div class="empty">Log your last period start date below to see your current phase.</div>';
+  } else {
+    const lastStart = new Date(logs[0].date);
+    const today = new Date();
+    const dayInCycle = Math.floor((today - lastStart) / 86400000) % state.cycle.cycleLength + 1;
+    const phaseKey = getCyclePhase(dayInCycle, state.cycle.cycleLength, state.cycle.periodLength);
+    const phase = CYCLE_PHASES[phaseKey];
+    const daysUntilNext = state.cycle.cycleLength - dayInCycle + 1;
+    box.innerHTML = `
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+        <div style="font-size:34px;">${phase.emoji}</div>
+        <div>
+          <div style="font-size:19px; font-weight:700;">${phase.label} phase</div>
+          <div class="meta">Day ${dayInCycle} of your cycle · next period expected in about ${daysUntilNext} day${daysUntilNext===1?'':'s'}</div>
+        </div>
+      </div>
+      <div class="sub" style="margin-bottom:14px;">${phase.desc}</div>
+      <div class="grid cols-3">
+        <div class="stat"><div class="l" style="margin-bottom:6px;">🍽️ Food</div><div style="font-size:12px; color:var(--text-dim); line-height:1.5;">${phase.food}</div></div>
+        <div class="stat"><div class="l" style="margin-bottom:6px;">🏃 Physical</div><div style="font-size:12px; color:var(--text-dim); line-height:1.5;">${phase.physical}</div></div>
+        <div class="stat"><div class="l" style="margin-bottom:6px;">💬 Social</div><div style="font-size:12px; color:var(--text-dim); line-height:1.5;">${phase.social}</div></div>
+      </div>
+    `;
+  }
+
+  const logBox = document.getElementById('cycle-log-list');
+  logBox.innerHTML = logs.length ? logs.map(l=>`
+    <div class="row"><div class="main"><div class="title">${l.date}</div></div>
+    <button class="iconbtn" onclick="delCycleLog('${l.id}')">✕</button></div>
+  `).join('') : '<div class="empty">No periods logged yet.</div>';
+}
+function saveCycleSettings(){
+  const cl = parseInt(document.getElementById('cycle-length').value) || 28;
+  const pl = parseInt(document.getElementById('period-length').value) || 5;
+  state.cycle.cycleLength = cl;
+  state.cycle.periodLength = pl;
+  scheduleSave(); renderCycle();
+}
+function logCycleStart(){
+  const date = document.getElementById('cycle-start-date').value;
+  if(!date) return;
+  state.cycle.logs.push({id:uid(), date});
+  document.getElementById('cycle-start-date').value='';
+  scheduleSave(); renderCycle();
+}
+function delCycleLog(id){
+  state.cycle.logs = state.cycle.logs.filter(l=>l.id!==id);
+  scheduleSave(); renderCycle();
+}
+
+/* ============ FOCUS TIMER ============ */
+let timerSeconds = 25*60;
+let timerInterval = null;
+let timerRunning = false;
+function formatTimer(s){
+  const m = Math.floor(s/60), sec = s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+function renderTimerDisplay(){
+  const disp = document.getElementById('timer-display');
+  if(!disp) return;
+  disp.textContent = formatTimer(timerSeconds);
+  const today = new Date().toISOString().slice(0,10);
+  const count = (state.study.byDate && state.study.byDate[today]) || 0;
+  document.getElementById('timer-sessions').textContent = count ? (count+' focus session'+(count>1?'s':'')+' today') : '';
+}
+function setTimerPreset(mins){
+  clearInterval(timerInterval); timerRunning=false;
+  timerSeconds = mins*60;
+  document.getElementById('timer-startpause').textContent = 'Start';
+  renderTimerDisplay();
+}
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval); timerRunning=false;
+    document.getElementById('timer-startpause').textContent = 'Start';
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-startpause').textContent = 'Pause';
+    timerInterval = setInterval(()=>{
+      timerSeconds--;
+      if(timerSeconds<=0){
+        clearInterval(timerInterval); timerRunning=false;
+        timerSeconds = 0;
+        renderTimerDisplay();
+        document.getElementById('timer-startpause').textContent = 'Start';
+        onTimerComplete();
+        return;
+      }
+      renderTimerDisplay();
+    }, 1000);
+  }
+}
+function resetTimer(){
+  clearInterval(timerInterval); timerRunning=false;
+  timerSeconds = 25*60;
+  document.getElementById('timer-startpause').textContent = 'Start';
+  renderTimerDisplay();
+}
+function onTimerComplete(){
+  const today = new Date().toISOString().slice(0,10);
+  state.study.byDate[today] = (state.study.byDate[today]||0) + 1;
+  scheduleSave();
+  renderTimerDisplay();
+  playChime();
+  popConfetti();
+}
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.6);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+0.6);
+  }catch(e){}
+}
+
+/* ============ MOOD CHECK-IN ============ */
+const MOODS = ['😊','🥰','😌','😐','😢','😩','😴'];
+function renderMoodPicker(){
+  const box = document.getElementById('mood-picker');
+  if(!box) return;
+  const today = new Date().toISOString().slice(0,10);
+  const current = state.moods[today];
+  box.innerHTML = MOODS.map(m=>`<span onclick="setMood('${m}')" style="cursor:pointer; opacity:${current && current!==m ? '.35':'1'}; transform:scale(${current===m?'1.25':'1'}); display:inline-block; transition:.15s;">${m}</span>`).join('');
+  const strip = document.getElementById('mood-strip');
+  let html='';
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    html += `<div style="width:22px; height:22px; border-radius:6px; background:var(--panel-soft); display:flex; align-items:center; justify-content:center; font-size:12px;">${state.moods[key]||''}</div>`;
+  }
+  strip.innerHTML = html;
+}
+function setMood(m){
+  const today = new Date().toISOString().slice(0,10);
+  state.moods[today] = m;
+  scheduleSave();
+  renderMoodPicker();
+}
+
+/* ============ JOURNAL ============ */
+function renderJournal(){
+  const box = document.getElementById('journal-list');
+  if(!box) return;
+  const list = [...state.journal].sort((a,b)=> a.date < b.date ? 1 : -1);
+  box.innerHTML = list.length ? list.map(j=>`
+    <div class="row" style="align-items:flex-start;">
+      <div class="main"><div class="title">${j.date}</div><div class="meta" style="white-space:pre-wrap; margin-top:4px;">${esc(j.text)}</div></div>
+      <button class="iconbtn" onclick="delJournal('${j.id}')">✕</button>
+    </div>
+  `).join('') : '<div class="empty">Nothing written yet.</div>';
+}
+function addJournal(){
+  const date = document.getElementById('journal-date').value || new Date().toISOString().slice(0,10);
+  const text = document.getElementById('journal-text').value.trim();
+  if(!text) return;
+  state.journal.push({id:uid(), date, text});
+  document.getElementById('journal-text').value='';
+  scheduleSave(); renderJournal();
+}
+function delJournal(id){
+  state.journal = state.journal.filter(j=>j.id!==id);
+  scheduleSave(); renderJournal();
+}
+
+/* ============ WISHLIST ============ */
+function renderWishlist(){
+  const box = document.getElementById('wishlist-list');
+  if(!box) return;
+  box.innerHTML = state.wishlist.length ? state.wishlist.map(w=>`
+    <div class="row">
+      <input type="checkbox" ${w.got?'checked':''} onchange="toggleWish('${w.id}')">
+      <div class="main" style="margin-left:10px; ${w.got?'opacity:.45; text-decoration:line-through;':''}">
+        <div class="title">${esc(w.item)}</div>
+        <div class="meta">${esc(w.note||'')}</div>
+      </div>
+      <button class="iconbtn" onclick="delWish('${w.id}')">✕</button>
+    </div>
+  `).join('') : '<div class="empty">Nothing on here yet.</div>';
+}
+function addWish(){
+  const item = document.getElementById('wish-item').value.trim();
+  const note = document.getElementById('wish-note').value.trim();
+  if(!item) return;
+  state.wishlist.push({id:uid(), item, note, got:false});
+  document.getElementById('wish-item').value='';
+  document.getElementById('wish-note').value='';
+  scheduleSave(); renderWishlist();
+}
+function toggleWish(id){
+  const w = state.wishlist.find(w=>w.id===id);
+  if(w){ w.got = !w.got; scheduleSave(); renderWishlist(); }
+}
+function delWish(id){
+  state.wishlist = state.wishlist.filter(w=>w.id!==id);
+  scheduleSave(); renderWishlist();
+}
+
+/* ============ SAVINGS GOALS ============ */
+function renderGoals(){
+  const box = document.getElementById('goals-list');
+  if(!box) return;
+  box.innerHTML = state.savingsGoals.length ? state.savingsGoals.map(g=>{
+    const pct = g.target ? Math.min(100, Math.round((g.saved||0)/g.target*100)) : 0;
+    return `<div class="row" style="align-items:flex-start;">
+      <div class="main">
+        <div class="title">${esc(g.name)}</div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <input type="number" step="0.01" style="width:80px; padding:5px 8px;" value="${g.saved||0}" onchange="updateGoalSaved('${g.id}', this.value)">
+          <span class="meta" style="white-space:nowrap;">/ ${eur(g.target)}</span>
+        </div>
+      </div>
+      <button class="iconbtn" onclick="delGoal('${g.id}')">✕</button>
+    </div>`;
+  }).join('') : '<div class="empty">No goals yet.</div>';
+}
+function addGoal(){
+  const name = document.getElementById('goal-name').value.trim();
+  const target = parseFloat(document.getElementById('goal-target').value);
+  if(!name || isNaN(target)) return;
+  state.savingsGoals.push({id:uid(), name, target, saved:0});
+  document.getElementById('goal-name').value='';
+  document.getElementById('goal-target').value='';
+  scheduleSave(); renderGoals();
+}
+function updateGoalSaved(id, val){
+  const g = state.savingsGoals.find(g=>g.id===id);
+  if(g){ g.saved = parseFloat(val)||0; scheduleSave(); renderGoals(); }
+}
+function delGoal(id){
+  state.savingsGoals = state.savingsGoals.filter(g=>g.id!==id);
+  scheduleSave(); renderGoals();
+}
+
+/* ============ DARK MODE ============ */
+function applyDarkMode(){
+  document.body.classList.toggle('dark', !!state.settings.darkMode);
+  const t = document.getElementById('dark-toggle');
+  if(t) t.classList.toggle('on', !!state.settings.darkMode);
+}
+function toggleDarkMode(){
+  state.settings.darkMode = !state.settings.darkMode;
+  scheduleSave();
+  applyDarkMode();
+}
+
+/* ============ NOTES / LINKS ============ */
+function renderLinks(){
+  const box = document.getElementById('files-list');
+  box.innerHTML = state.links.length ? state.links.map(l=>`
+    <div class="row"><div class="main"><div class="title">${esc(l.title)}</div><div class="meta">${esc(l.text)}</div></div>
+    <button class="iconbtn" onclick="delLink('${l.id}')">✕</button></div>
+  `).join('') : '<div class="empty">Nothing saved yet.</div>';
+}
+function addLink(){
+  const title = document.getElementById('file-title').value.trim();
+  const text = document.getElementById('file-link').value.trim();
+  if(!title) return;
+  state.links.push({id:uid(), title, text});
+  document.getElementById('file-title').value='';
+  document.getElementById('file-link').value='';
+  scheduleSave(); renderLinks();
+}
+function delLink(id){
+  state.links = state.links.filter(l=>l.id!==id);
+  scheduleSave(); renderLinks();
+}
+
+/* ============ SETTINGS ============ */
+function exportData(){
+  try{
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'digi-center-backup.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){ alert('Export failed in this environment.'); }
+}
+function importData(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      state = parsed;
+      const d = defaultState();
+      for(const k in d){ if(!(k in state)) state[k] = d[k]; }
+      scheduleSave(); renderAll();
+    }catch(e){ alert('That file could not be read.'); }
+  };
+  reader.readAsText(file);
+}
+function resetAll(){
+  if(!confirm('This clears everything permanently. Continue?')) return;
+  state = defaultState();
+  scheduleSave(); renderAll();
+}
+
+/* ============ RENDER ALL ============ */
+function renderAll(){
+  renderDashboard();
+  renderFinance();
+  renderProjects();
+  renderTasks();
+  renderEvents();
+  renderCalendarGrid();
+  renderBooks();
+  renderWriting();
+  renderHabits();
+  renderCycle();
+  renderLinks();
+  renderTimerDisplay();
+  renderMoodPicker();
+  renderJournal();
+  renderWishlist();
+  renderGoals();
+  applyDarkMode();
+}
+
+/* ============ EASTER EGG ============ */
+const LOVE_MESSAGES = [
+  "I love you 🩷",
+  "So proud of you 🌷",
+  "You've got this ✨",
+  "Made with love, just for you 💌",
+  "You're doing amazing, truly 🩷",
+  "Just a little reminder 💗"
+];
+function popConfetti(){
+  const colors = ['#eb96b0','#ffd6e3','#ffffff','#d9668f','#ffb6cd'];
+  const count = 60;
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random()*7;
+    el.style.width = size+'px';
+    el.style.height = size+'px';
+    el.style.left = (Math.random()*100)+'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.borderRadius = Math.random()>0.5 ? '50%' : '3px';
+    const duration = 2.2 + Math.random()*1.6;
+    el.style.animationDuration = duration+'s';
+    el.style.animationDelay = (Math.random()*0.3)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), (duration+0.5)*1000);
+  }
+}
+function showLoveMessage(){
+  const overlay = document.getElementById('love-overlay');
+  const msg = LOVE_MESSAGES[Math.floor(Math.random()*LOVE_MESSAGES.length)];
+  overlay.querySelector('.card').textContent = msg;
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.remove('show'), 1900);
+}
+function triggerEasterEgg(){
+  popConfetti();
+  showLoveMessage();
+}
+
+/* ============ INIT ============ */
+(async function init(){
+  if('serviceWorker' in navigator){
+    try{ await navigator.serviceWorker.register('sw.js'); }catch(e){ console.warn('SW registration failed', e); }
+  }
+  boot();
+  initNav();
+  tickClock();
+  setInterval(tickClock, 1000);
+  await loadState();
+  renderAll();
+  const cloudRow = await pullFromCloud(true);
+  if(!cloudRow) pushToCloud();
+  startCloudPolling();
+})();
+</script>
+</body>
+</html>
